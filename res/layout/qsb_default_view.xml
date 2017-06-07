@@ -23,7 +23,7 @@
         android:layout_height="48dp"
         android:layout_margin="16dp"
         android:layout_gravity="center_vertical"
-        android:background="@drawable/quantum_panel_shape"
+        android:background="@drawable/round_rect_primary"
         android:elevation="2dp"
         android:orientation="horizontal">
 
