@@ -3,7 +3,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:2.1.3'
+        classpath 'com.android.tools.build:gradle:2.3.2'
         classpath 'com.google.protobuf:protobuf-gradle-plugin:0.8.0'
     }
 }
@@ -13,10 +13,10 @@ apply plugin: 'com.google.protobuf'
 
 android {
     compileSdkVersion 25
-    buildToolsVersion '24.0.0'
+    buildToolsVersion '25.0.3'
 
     defaultConfig {
-        minSdkVersion 21
+        minSdkVersion 23
         targetSdkVersion 25
         versionCode 1
         versionName "1.0"
@@ -31,8 +31,8 @@ android {
 
     productFlavors {
         aosp {
-            applicationId 'com.android.launcher3'
-            testApplicationId 'com.android.launcher3.tests'
+            applicationId 'com.android.launcher3a'
+            testApplicationId 'com.android.launcher3a.tests'
         }
     }
     sourceSets {
