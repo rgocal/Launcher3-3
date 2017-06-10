@@ -6,55 +6,43 @@ import android.graphics.Canvas;
 import android.util.AttributeSet;
 import android.widget.TextClock;
 
-public class SuperDoubleShadowTextClock
-        extends TextClock
-{
-    private final float bA;
-    private final float bw;
-    private final int bx;
-    private final float by;
-    private final int bz;
+public class SuperDoubleShadowTextClock extends TextClock {
+    private final float ambientShadowBlur;
+    private final int ambientShadowColor;
+    private final float keyShadowBlur;
+    private final int keyShadowColor;
+    private final float keyShadowOffset;
 
-    public SuperDoubleShadowTextClock(Context paramContext)
-    {
-        this(paramContext, null);
+    public SuperDoubleShadowTextClock(Context context) {
+        this(context, null);
     }
 
-    public SuperDoubleShadowTextClock(Context paramContext, AttributeSet paramAttributeSet)
-    {
-        this(paramContext, paramAttributeSet, 0);
+    public SuperDoubleShadowTextClock(Context context, AttributeSet attributeSet) {
+        this(context, attributeSet, 0);
     }
 
-    public SuperDoubleShadowTextClock(Context paramContext, AttributeSet paramAttributeSet, int paramInt)
-    {
-        super(paramContext, paramAttributeSet, paramInt);
-        TypedArray ta = paramContext.obtainStyledAttributes(paramAttributeSet, new int[] { R.attr.ambientShadowColor, R.attr.keyShadowColor, R.attr.ambientShadowBlur, R.attr.keyShadowBlur, R.attr.keyShadowOffset }, paramInt, 0);
-        this.bw = ta.getDimension(2, 0.0F);
-        this.by = ta.getDimension(3, 0.0F);
-        this.bA = ta.getDimension(4, 0.0F);
-        this.bx = ta.getColor(0, 0);
-        this.bz = ta.getColor(1, 0);
+    public SuperDoubleShadowTextClock(Context context, AttributeSet attributeSet, int i) {
+        super(context, attributeSet, i);
+        TypedArray ta = context.obtainStyledAttributes(attributeSet, new int[] { R.attr.ambientShadowColor, R.attr.keyShadowColor, R.attr.ambientShadowBlur, R.attr.keyShadowBlur, R.attr.keyShadowOffset }, i, 0);
+        ambientShadowColor = ta.getColor(0, 0);
+        keyShadowColor = ta.getColor(1, 0);
+        ambientShadowBlur = ta.getDimension(2, 0.0F);
+        keyShadowBlur = ta.getDimension(3, 0.0F);
+        keyShadowOffset = ta.getDimension(4, 0.0F);
         ta.recycle();
-        setShadowLayer(Math.max(this.by + this.bA, this.bw), 0.0F, 0.0F, this.bz);
+        setShadowLayer(Math.max(keyShadowBlur + keyShadowOffset, ambientShadowBlur), 0.0f, 0.0f, keyShadowColor);
     }
 
-    public void ba(CharSequence paramCharSequence)
-    {
-        setFormat24Hour(paramCharSequence);
-        setFormat12Hour(paramCharSequence);
+    @Override
+    protected void onDraw(Canvas canvas) {
+        getPaint().setShadowLayer(keyShadowBlur, 0.0f, keyShadowOffset, keyShadowColor);
+        super.onDraw(canvas);
+        getPaint().setShadowLayer(ambientShadowBlur, 0.0f, 0.0f, ambientShadowColor);
+        super.onDraw(canvas);
     }
 
-    protected void onDraw(Canvas paramCanvas)
-    {
-        getPaint().setShadowLayer(this.by, 0.0F, this.bA, this.bz);
-        super.onDraw(paramCanvas);
-        getPaint().setShadowLayer(this.bw, 0.0F, 0.0F, this.bx);
-        super.onDraw(paramCanvas);
+    public void setFormat(CharSequence charSequence) {
+        setFormat24Hour(charSequence);
+        setFormat12Hour(charSequence);
     }
 }
-
-
-/* Location:              C:\Users\Amir\Downloads\pixel-dex2jar.jar!\com\google\android\apps\nexuslauncher\qsb\DoubleShadowTextClock.class
- * Java compiler version: 6 (50.0)
- * JD-Core Version:       0.7.1
- */

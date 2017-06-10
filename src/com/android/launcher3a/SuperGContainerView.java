@@ -1,18 +1,18 @@
 package com.android.launcher3a;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Rect;
 import android.util.AttributeSet;
-import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.FrameLayout;
+
 import com.android.launcher3a.util.TransformingTouchDelegate;
 
 public class SuperGContainerView extends SuperQsb
 {
     private static final Rect sTempRect = new Rect();
-    private final TransformingTouchDelegate bY;
+    private final TransformingTouchDelegate mTouchDelegate; //bY
 
     public SuperGContainerView(Context paramContext)
     {
@@ -27,112 +27,114 @@ public class SuperGContainerView extends SuperQsb
     public SuperGContainerView(Context paramContext, AttributeSet paramAttributeSet, int paramInt)
     {
         super(paramContext, paramAttributeSet, paramInt);
-
-        bm();
-        bh();
-        if (this.bO.useVerticalBarLayout())
-        {
+        if (mLauncher.useVerticalBarLayout()) {
             View.inflate(paramContext, R.layout.qsb_blocker_view, this);
-            this.bY = null;
+            this.mTouchDelegate = null;
         }
         else {
-            this.bY = new TransformingTouchDelegate(this);
+            this.mTouchDelegate = new TransformingTouchDelegate(this);
         }
-
-        SuperDateWidgetView v = (SuperDateWidgetView) LayoutInflater.from(getContext()).inflate(R.layout.date_widget, this, false);
-        this.addView(v);
     }
 
-    protected int be(boolean paramBoolean)
-    {
-        float f;
-        if (this.bY != null)
-        {
-            TransformingTouchDelegate localTransformingTouchDelegate = this.bY;
-            if (paramBoolean)
-            {
-                f = 0.0F;
-                localTransformingTouchDelegate.extendTouchBounds(f);
-            }
+    @Override
+    public void applyOpaPreference() {
+        super.applyOpaPreference();
+        if (mTouchDelegate != null) {
+            mTouchDelegate.setDelegateView(mQsbView);
+        }
+    }
+
+    @Override
+    protected int getQsbView(boolean withMic) {
+        if (mTouchDelegate != null) {
+            float f;
+            f = getResources().getDimension(R.dimen.qsb_touch_extension);
+            mTouchDelegate.extendTouchBounds(f);
         }
 
         return R.layout.qsb_without_mic;
     }
 
-    public boolean dispatchTouchEvent(MotionEvent paramMotionEvent)
-    {
-        if (this.bY != null) {
-            //return false;
-        }
-        return super.dispatchTouchEvent(paramMotionEvent);
-    }
-
-    protected void onAttachedToWindow()
-    {
-        super.onAttachedToWindow();
-        if (this.bY != null) {
-            this.bO.getWorkspace().findViewById(R.id.workspace_blocked_row).setTouchDelegate(this.bY);
-        }
-    }
-
-    protected void onLayout(boolean paramBoolean, int paramInt1, int paramInt2, int paramInt3, int paramInt4)
-    {
-        super.onLayout(paramBoolean, paramInt1, paramInt2, paramInt3, paramInt4);
-        if (this.bY != null)
-        {
-            paramInt1 = 0;
-            if (Utilities.isRtl(getResources())) {
-                paramInt1 = this.bF.getLeft() - this.bO.getDeviceProfile().getWorkspacePadding(sTempRect).left;
-            }
-            this.bY.setBounds(paramInt1, this.bF.getTop(), this.bF.getWidth() + paramInt1, this.bF.getBottom());
-        }
-    }
-
-    protected void onMeasure(int paramInt1, int paramInt2)
-    {
-        int j = -getResources().getDimensionPixelSize(R.dimen.qsb_overlap_margin);
-        DeviceProfile localObject1 = this.bO.getDeviceProfile();
-        Rect localObject2 = localObject1.getWorkspacePadding(sTempRect);
-        int i = View.MeasureSpec.getSize(paramInt1) - j;
-        int k;
-
-        int m = i - localObject2.left - localObject2.right;
-        i = DeviceProfile.calculateCellWidth(m, localObject1.inv.numColumns) * localObject1.inv.numColumns;
-        k = localObject2.left;
-        m = (m - i) / 2;
-        j += k + m;
-
-        if (bO.useVerticalBarLayout()) {
-            j = 0;
-        }
-
-        if (localObject1.isVerticalBarLayout())
-        {
-            k = getResources().getDimensionPixelSize(R.dimen.qsb_button_elevation);
-            j += k;
-        }
-
-        if (this.bF != null)
-        {
-            FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams)this.bF.getLayoutParams();
-            lp.width = (i / localObject1.inv.numColumns);
-            if (this.bL) {
-                lp.width = Math.max(lp.width, getResources().getDimensionPixelSize(R.dimen.qsb_min_width_with_mic));
-            }
-            lp.setMarginStart(j);
-            lp.resolveLayoutDirection(lp.getLayoutDirection());
-        }
-        if (this.bH != null)
-        {
-            FrameLayout.LayoutParams lp = (FrameLayout.LayoutParams)this.bH.getLayoutParams();
-            lp.width = (j + lp.height / 2);
-        }
-        super.onMeasure(paramInt1, paramInt2);
-    }
-
-    public void setPadding(int paramInt1, int paramInt2, int paramInt3, int paramInt4)
-    {
+    @Override
+    public void setPadding(int i, int i2, int i3, int i4) {
         super.setPadding(0, 0, 0, 0);
+    }
+
+    @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        if (mTouchDelegate != null) {
+            mLauncher.getWorkspace().findViewById(R.id.workspace_blocked_row).setTouchDelegate(mTouchDelegate);
+        }
+    }
+
+    @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        int qsbOverlapMargin = -getResources().getDimensionPixelSize(R.dimen.qsb_overlap_margin); //n3
+        DeviceProfile deviceProfile = mLauncher.getDeviceProfile();
+        Rect workspacePadding = deviceProfile.getWorkspacePadding(sTempRect);
+        int size = MeasureSpec.getSize(widthMeasureSpec) - qsbOverlapMargin;
+
+        int n6;
+        int marginStart;
+
+        if (deviceProfile.isVerticalBarLayout())
+        {
+            final int columnsWidth = qsbOverlapMargin + getResources().getDimensionPixelSize(R.dimen.qsb_button_elevation);
+            n6 = size;
+            marginStart = columnsWidth;
+        }
+        else
+        {
+            final int n7 = size - workspacePadding.left - workspacePadding.right;
+            n6 = DeviceProfile.calculateCellWidth(n7, deviceProfile.inv.numColumns) * deviceProfile.inv.numColumns;
+            marginStart = qsbOverlapMargin + (workspacePadding.left + (n7 - n6) / 2);
+        }
+
+        if (mQsbView != null) {
+            LayoutParams layoutParams = (LayoutParams) mQsbView.getLayoutParams();
+            layoutParams.width = n6 / deviceProfile.inv.numColumns;
+            if (mLauncher.useVerticalBarLayout()) {
+                layoutParams.width = Math.max(layoutParams.width, getResources().getDimensionPixelSize(R.dimen.qsb_min_width_with_mic));
+            }
+            layoutParams.setMarginStart(marginStart);
+            layoutParams.resolveLayoutDirection(layoutParams.getLayoutDirection());
+        }
+        if (qsbConnector != null) {
+            LayoutParams layoutParams = (LayoutParams) qsbConnector.getLayoutParams();
+            layoutParams.width = marginStart + layoutParams.height / 2;
+        }
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+    }
+
+
+    @Override
+    protected void onLayout(boolean z, int i, int i2, int i3, int i4) {
+        super.onLayout(z, i, i2, i3, i4);
+        if (mTouchDelegate != null) {
+            int i5 = 0;
+            if (Utilities.isRtl(getResources())) {
+                i5 = mQsbView.getLeft() - mLauncher.getDeviceProfile().getWorkspacePadding(sTempRect).left;
+            }
+            mTouchDelegate.setBounds(i5, mQsbView.getTop(), mQsbView.getWidth() + i5, mQsbView.getBottom());
+        }
+    }
+
+    @Override
+    protected void bi(Rect rect, Intent intent) {
+        if (!mLauncher.useVerticalBarLayout()) {
+            int height = mQsbView.getHeight() / 2;
+            if (Utilities.isRtl(getResources())) {
+                rect.right = height + getRight();
+            } else {
+                rect.left = -height;
+            }
+        }
+    }
+
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent motionEvent) {
+        return mTouchDelegate == null && super.dispatchTouchEvent(motionEvent);
     }
 }
 

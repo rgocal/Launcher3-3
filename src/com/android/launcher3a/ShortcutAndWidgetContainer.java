@@ -126,7 +126,7 @@ public class ShortcutAndWidgetContainer extends ViewGroup {
             lp.setup(cellWidth, cellHeight, mWidthGap, mHeightGap, invertLayoutHorizontally(),
                     mCountX);
 
-            if (child instanceof LauncherAppWidgetHostView) {
+            if (child instanceof LauncherAppWidgetHostView || child instanceof QsbBlockerView) {
                 // Widgets have their own padding, so skip
             } else {
                 // Otherwise, center the icon/folder
@@ -142,8 +142,8 @@ public class ShortcutAndWidgetContainer extends ViewGroup {
             lp.height = getMeasuredHeight();
         }
         int childWidthMeasureSpec = MeasureSpec.makeMeasureSpec(lp.width, MeasureSpec.EXACTLY);
-        int childheightMeasureSpec = MeasureSpec.makeMeasureSpec(lp.height, MeasureSpec.EXACTLY);
-        child.measure(childWidthMeasureSpec, childheightMeasureSpec);
+        int childHeightMeasureSpec = MeasureSpec.makeMeasureSpec(lp.height, MeasureSpec.EXACTLY);
+        child.measure(childWidthMeasureSpec, childHeightMeasureSpec);
     }
 
     public boolean invertLayoutHorizontally() {

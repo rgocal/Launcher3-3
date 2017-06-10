@@ -1,6 +1,7 @@
 package com.android.launcher3a;
 
 import android.content.Context;
+import android.graphics.Paint;
 import android.graphics.Rect;
 import android.text.Editable;
 import android.text.TextPaint;
@@ -11,122 +12,100 @@ import android.view.View;
 import android.widget.LinearLayout;
 import java.util.Locale;
 
-public class SuperDateWidgetView
-        extends LinearLayout
-        implements TextWatcher
-{
-    private String bQ = "";
-    private float bR;
-    private SuperDoubleShadowTextClock bS;
-    private SuperDoubleShadowTextClock bT;
-    private int bU = 0;
+public class SuperDateWidgetView extends LinearLayout implements TextWatcher {
+    private String text = "";
+    private float dateText1TextSize;
+    private SuperDoubleShadowTextClock dateText1;
+    private SuperDoubleShadowTextClock dateText2;
+    private int width = 0;
 
-    public SuperDateWidgetView(Context paramContext, AttributeSet paramAttributeSet)
-    {
-        super(paramContext, paramAttributeSet);
+    public SuperDateWidgetView(Context context, AttributeSet attributeSet) {
+        super(context, attributeSet);
     }
 
-    private void bq()
-    {
-        this.bQ = "";
-        br();
+    @Override
+    protected void onFinishInflate() {
+        super.onFinishInflate();
+        dateText1 = (SuperDoubleShadowTextClock) findViewById(R.id.date_text1);
+        dateText1TextSize = dateText1.getTextSize();
+        dateText1.addTextChangedListener(this);
+        dateText1.setFormat(DateFormat.getBestDateTimePattern(Locale.getDefault(), "MMMMd"));
+        dateText2 = (SuperDoubleShadowTextClock) findViewById(R.id.date_text2);
+        dateText2.setFormat(getContext().getString(R.string.week_day_format, "EEEE", "yyyy"));
+        init();
     }
 
-    private void br()
-    {
-        if (this.bU <= 0) {
-            return;
+    private void init() {
+        Locale locale = Locale.getDefault();
+        if (locale != null && Locale.ENGLISH.getLanguage().equals(locale.getLanguage())) {
+            Paint paint = dateText1.getPaint();
+            Rect rect = new Rect();
+            paint.getTextBounds("x", 0, 1, rect);
+            int height = rect.height();
+            dateText2.setPadding(0, 0, 0, ((int) (Math.abs(paint.getFontMetrics().ascent) - ((float) height))) / 2);
         }
-        String str = this.bS.getText().toString();
-        if (this.bQ.equals(str)) {
-            return;
-        }
-        this.bQ = str;
-        if (str.isEmpty()) {
-            return;
-        }
-        TextPaint localTextPaint = this.bS.getPaint();
-        float f2 = localTextPaint.getTextSize();
-        float f1 = this.bR;
-        int i = 0;
-        float f3 = 0;
-        if (i < 10)
-        {
-            //localTextPaint.setTextSize(f1);
-            f3 = localTextPaint.measureText(str);
-            if (f3 > this.bU) {}
-        }
-        else
-        {
-            if (Float.compare(f1, f2) == 0) {
-                //localTextPaint.setTextSize(f2);
+    }
+
+    @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        DeviceProfile deviceProfile = Launcher.getLauncher(getContext()).getDeviceProfile();
+        int size = MeasureSpec.getSize(widthMeasureSpec) / deviceProfile.inv.numColumns;
+        int marginEnd = (size - deviceProfile.iconSizePx) / 2;
+        width = (deviceProfile.inv.numColumns - Math.max(1, (int) Math.ceil((double) (getResources().getDimension(R.dimen.qsb_min_width_with_mic) / ((float) size))))) * size;
+        text = "";
+        update();
+        setMarginEnd(dateText1, marginEnd);
+        setMarginEnd(dateText2, marginEnd);
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+    }
+
+    private void setMarginEnd(View view, int marginEnd) {
+        LayoutParams layoutParams = (LayoutParams) view.getLayoutParams();
+        layoutParams.setMarginEnd(marginEnd);
+        layoutParams.resolveLayoutDirection(layoutParams.getLayoutDirection());
+    }
+
+
+    @Override
+    public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+    }
+
+    @Override
+    public void onTextChanged(CharSequence s, int start, int before, int count) {
+
+    }
+
+    @Override
+    public void afterTextChanged(Editable editable) {
+        update();
+    }
+
+    private void update() {
+        if (width > 0) {
+            String dateText1Text = dateText1.getText().toString();
+            if (!text.equals(dateText1Text)) {
+                text = dateText1Text;
+                if (!dateText1Text.isEmpty()) {
+                    TextPaint paint = dateText1.getPaint();
+                    float textSize = paint.getTextSize();
+                    float size = dateText1TextSize;
+                    for (int i = 0; i < 10; i++) {
+                        paint.setTextSize(size);
+                        float measureText = paint.measureText(dateText1Text);
+                        if (measureText <= ((float) width)) {
+                            break;
+                        }
+                        size = (size * ((float) width)) / measureText;
+                    }
+                    if (Float.compare(size, textSize) == 0) {
+                        paint.setTextSize(textSize);
+                    } else {
+                        dateText1.setTextSize(0, size);
+                        init();
+                    }
+                }
             }
         }
-
-        f1 = f1 * this.bU / f3;
-        i++;
-        //this.bS.setTextSize(0, f1);
-        bt();
     }
-
-    private void bs(View paramView, int paramInt)
-    {
-        LinearLayout.LayoutParams lp = (LinearLayout.LayoutParams)paramView.getLayoutParams();
-        lp.setMarginEnd(paramInt);
-        lp.resolveLayoutDirection(paramView.getLayoutDirection());
-    }
-
-    private void bt()
-    {
-        Object localObject = Locale.getDefault();
-        if ((localObject != null) && (Locale.ENGLISH.getLanguage().equals(((Locale)localObject).getLanguage())))
-        {
-            TextPaint localTextPaint = this.bS.getPaint();
-            localObject = new Rect();
-            localTextPaint.getTextBounds("x", 0, 1, (Rect)localObject);
-            int i = ((Rect)localObject).height();
-            float f = localTextPaint.getFontMetrics().ascent;
-            this.bT.setPadding(0, 0, 0, (int)(Math.abs(f) - i) / 2);
-        }
-    }
-
-    public void afterTextChanged(Editable paramEditable)
-    {
-        br();
-    }
-
-    public void beforeTextChanged(CharSequence paramCharSequence, int paramInt1, int paramInt2, int paramInt3) {}
-
-    protected void onFinishInflate()
-    {
-        super.onFinishInflate();
-        this.bS = ((SuperDoubleShadowTextClock)findViewById(R.id.date_text1));
-        this.bR = this.bS.getTextSize();
-        this.bS.addTextChangedListener(this);
-        this.bS.ba(DateFormat.getBestDateTimePattern(Locale.getDefault(), "MMMMd"));
-        this.bT = ((SuperDoubleShadowTextClock)findViewById(R.id.date_text2));
-        this.bT.ba(getContext().getString(R.string.week_day_format, new Object[] { "EEEE", "yyyy" }));
-        bt();
-    }
-
-    protected void onMeasure(int paramInt1, int paramInt2)
-    {
-        DeviceProfile localDeviceProfile = Launcher.getLauncher(getContext()).getDeviceProfile();
-        int k = View.MeasureSpec.getSize(paramInt1) / localDeviceProfile.inv.numColumns;
-        int i = (k - localDeviceProfile.iconSizePx) / 2;
-        int j = Math.max(1, (int)Math.ceil(getResources().getDimension(R.dimen.qsb_min_width_with_mic) / k));
-        this.bU = ((localDeviceProfile.inv.numColumns - j) * k);
-        bq();
-        bs(this.bS, i);
-        bs(this.bT, i);
-        super.onMeasure(paramInt1, paramInt2);
-    }
-
-    public void onTextChanged(CharSequence paramCharSequence, int paramInt1, int paramInt2, int paramInt3) {}
 }
-
-
-/* Location:              C:\Users\Amir\Downloads\pixel-dex2jar.jar!\com\google\android\apps\nexuslauncher\qsb\DateWidgetView.class
- * Java compiler version: 6 (50.0)
- * JD-Core Version:       0.7.1
- */

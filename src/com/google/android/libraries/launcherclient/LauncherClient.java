@@ -104,13 +104,17 @@ public class LauncherClient {
     }
 
     static Intent getServiceIntent(Context context, String targetPackage) {
-        Uri uri = Uri.parse("app://" + context.getPackageName() + ":" + Process.myUid()).buildUpon()
-            .appendQueryParameter("v", Integer.toString(0))
-            .build();
+        String value = context.getPackageName();
 
         return new Intent("com.android.launcher3.WINDOW_OVERLAY")
             .setPackage(targetPackage)
-            .setData(uri);
+            .setData(Uri.parse(new StringBuilder(
+                    String.valueOf(value).length() + 18)
+                    .append("app://")
+                    .append(value)
+                    .append(":")
+                    .append(Process.myUid()
+                    ).toString()).buildUpon().appendQueryParameter("v", Integer.toString(0)).build());
     }
 
     private boolean isConnected() {
