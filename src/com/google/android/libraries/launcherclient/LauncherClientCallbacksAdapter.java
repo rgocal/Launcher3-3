@@ -1,6 +1,6 @@
 package com.google.android.libraries.launcherclient;
 
-import com.android.launcher3a.Workspace;
+import com.android.launcher3.Workspace;
 
 public class LauncherClientCallbacksAdapter implements LauncherClientCallbacks {
     private Workspace mWorkspace;
