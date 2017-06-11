@@ -50,7 +50,6 @@ public class SuperShadowHostView
 
     @Override
     protected void onDraw(Canvas canvas) {
-        Log.d("SuperShadowHostView", "onDraw");
         final int n =  android.graphics.Color.BLACK;
         if (this.mView != null && this.mView.getWidth() > 0 && this.mView.getHeight() > 0) {
             if (this.ch == null || this.ch.getHeight() != this.mView.getHeight() || this.ch.getWidth() != this.mView.getWidth()) {
