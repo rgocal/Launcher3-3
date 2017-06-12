@@ -7,6 +7,7 @@ import android.animation.AnimatorSet;
 import android.animation.ArgbEvaluator;
 import android.animation.ObjectAnimator;
 import android.graphics.Color;
+import android.graphics.Rect;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.graphics.ColorUtils;
 import android.support.v4.view.animation.FastOutSlowInInterpolator;
@@ -21,7 +22,9 @@ import com.android.launcher3.DeviceProfile;
 import com.android.launcher3.Hotseat;
 import com.android.launcher3.Launcher;
 import com.android.launcher3.LauncherAnimUtils;
+import com.android.launcher3.LauncherAppWidgetHostView;
 import com.android.launcher3.R;
+import com.android.launcher3.ShortcutAndWidgetContainer;
 import com.android.launcher3.Utilities;
 import com.android.launcher3.Workspace;
 import com.android.launcher3.userevent.nano.LauncherLogProto;
@@ -116,6 +119,8 @@ public class AllAppsTransitionController implements TouchController, VerticalPul
             } else if (mLauncher.isAllAppsVisible() &&
                     !mAppsView.shouldContainerScroll(ev)) {
                 mNoIntercept = true;
+            } else if (!mLauncher.isAllAppsVisible() && !shouldPossiblyIntercept(ev)) {
+                mNoIntercept = true;
             } else {
                 // Now figure out which direction scroll events the controller will start
                 // calling the callbacks.
@@ -153,22 +158,25 @@ public class AllAppsTransitionController implements TouchController, VerticalPul
     }
 
     private boolean shouldPossiblyIntercept(MotionEvent ev) {
-        DeviceProfile grid = mLauncher.getDeviceProfile();
         if (mDetector.isIdleState()) {
-            if (grid.isVerticalBarLayout()) {
-                if (ev.getY() > mLauncher.getDeviceProfile().heightPx - mBezelSwipeUpHeight) {
-                    return true;
-                }
-            } else {
-                if (mLauncher.getDragLayer().isEventOverHotseat(ev) ||
-                        mLauncher.getDragLayer().isEventOverPageIndicator(ev)) {
-                    return true;
+            Workspace ws = mLauncher.getWorkspace();
+            ShortcutAndWidgetContainer c = ws.getScreenWithId(ws.getCurrentPage()).getShortcutsAndWidgets();
+            int x = (int)ev.getX();
+            int y = (int)ev.getY();
+            Rect outRect = new Rect();
+            int count = c.getChildCount();
+            for (int i = 0; i < count; i++) {
+                View v = c.getChildAt(i);
+                if (v instanceof LauncherAppWidgetHostView) {
+                    v.getHitRect(outRect);
+                    if (outRect.contains(x, y)) {
+                        return false;
+                    }
                 }
             }
-            return false;
-        } else {
-            return true;
         }
+
+        return true;
     }
 
     @Override
